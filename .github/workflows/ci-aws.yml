@@ -1,7 +1,16 @@
 ---
 name: Build and Deploy to AWS
-
 on: push
+
+
+permissions:
+  contents: read
+
+env:
+  ECS_SERVICE: backend-service
+  ECS_CLUSTER: cluster-app
+  ECS_TASK_DEFINITION: backend-image
+  CONTAINER_NAME: backend-image
 
 jobs:
   build:

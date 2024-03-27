@@ -1,0 +1,9 @@
+# Include everything
+*
+
+# Exclude application files
+!src/
+!package.json
+!yarn.lock
+!tsconfig.json
+!index.js

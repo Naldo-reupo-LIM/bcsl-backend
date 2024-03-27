@@ -1,0 +1,54 @@
+name: Build and Deploy to Azure
+
+on:
+  push:
+    branches:
+      - master # Set this to your default branch
+    paths:
+      - 'src/**'
+      - 'Dockerfile'
+      - '*.js'
+      - '*.json'
+
+jobs:
+  build_and_deploy:
+    permissions:
+      id-token: write
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Login to Azure
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Build Docker image using Yarn
+      - name: Build Docker image
+        run: |
+          docker build -t azcapabilitiesacr.azurecr.io/ms-conference-bff:${{ github.sha }} .
+          docker pull mongo:6.0.6
+          docker tag mongo:6.0.6 azcapabilitiesacr.azurecr.io/image-mongo:v1
+
+      # Login to Azure Container Registry
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: azcapabilitiesacr.azurecr.io
+          username: ${{ secrets.AZURE_ACR_USERNAME }}
+          password: ${{ secrets.AZURE_ACR_PASSWORD }}
+
+      # Push the image to Azure Container Registry
+      - name: Push image to ACR
+        run: |
+          docker tag azcapabilitiesacr.azurecr.io/ms-conference-bff:${{ github.sha }} azcapabilitiesacr.azurecr.io/ms-conference-bff:latest
+          docker push azcapabilitiesacr.azurecr.io/ms-conference-bff:latest
+          docker push azcapabilitiesacr.azurecr.io/image-mongo:v1
+
+      # Optional: Logout of Azure
+      - name: Logout of Azure
+        run: az logout

@@ -2,7 +2,6 @@
 name: Build and Deploy to AWS
 on: push
 
-
 permissions:
   contents: read
 
